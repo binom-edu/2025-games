@@ -18,5 +18,8 @@ while game_on:
     else:
         print('Загаданное число больше')
     attempt = attempt + 1
+    if attempt == 9:
+        print('Попытки закончились.')
+        game_on = False
 
 print(f'Затрачено попыток: {attempt}')
