@@ -1,4 +1,5 @@
 import random
+import time
 
 def make_board() -> list:
     '''Создает игровое поле'''
@@ -34,6 +35,28 @@ def get_computer_move() -> int:
     for i in range(1, 10):
         if board[i] == ' ':
             free.append(i)
+    # проверяем выигрывающий ход
+    for x in free:
+        bc = board.copy()
+        bc[x] = computer_tile
+        if check_win(bc, computer_tile):
+            return x
+    # проверяем блокирующий ход
+    for x in free:
+        bc = board.copy()
+        bc[x] = user_tile
+        if check_win(bc, user_tile):
+            return x
+    # пытаемся занять центр
+    if board[5] == ' ':
+        return 5
+    # пытаемся занять угол
+    corners = []
+    for x in 1, 3, 7, 9:
+        if board[x] == ' ':
+            corners.append(x)
+    if len(corners) > 0:
+        return random.choice(corners)
     return random.choice(free)
 
 def check_win(board: list, tile: str) -> bool:
@@ -71,6 +94,7 @@ print(f'Первым ходит {turn}.')
 board = make_board()
 game_on = True
 while game_on:
+    time.sleep(1)
     if turn == 'человек':
         print('Ход человека')
         print_board(board)
@@ -89,6 +113,8 @@ while game_on:
             print('Победил компьютер')
             game_on = False
         turn = 'человек'
-    if check_draw(board):
+    if game_on and check_draw(board):
         print('Ничья.')
         game_on = False
+
+print_board(board)
