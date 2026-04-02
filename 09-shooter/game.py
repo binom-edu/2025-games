@@ -1,13 +1,13 @@
 import pygame
 import random
+import os
 
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.surface.Surface((50, 30))
+        self.image = pygame.image.load(os.path.join(img_dir, 'playerShip.png'))
         self.rect = self.image.get_rect()
-        self.image.fill((128, 128, 128))
         self.rect.centerx = WIDTH / 2
         self.rect.bottom = HEIGHT - 30
     def update(self):
@@ -26,6 +26,11 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
 pygame.display.set_caption('Shooter 26')
 clock = pygame.time.Clock()
+img_dir = os.path.join(os.path.dirname(__file__), 'img')
+meteors_img = []
+meteors_list = os.listdir(os.path.join(img_dir, 'meteors'))
+for filename in meteors_list:
+    meteors_img.append(pygame.image.load(os.path.join(img_dir, 'meteors', filename)))
 all_sprites = pygame.sprite.Group()
 
 player = Player()
