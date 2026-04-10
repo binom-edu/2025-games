@@ -25,6 +25,7 @@ class Mob(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = random.choice(meteors_img)
         self.rect = self.image.get_rect()
+        self.radius = int(self.rect.width * 0.7 / 2)
         self.rect.centerx = random.randrange(0, WIDTH)
         self.rect.centery = random.randrange(-100, 0)
         self.speedx = random.randint(-3, 3)
@@ -46,6 +47,16 @@ def draw_hp(hp, surf):
     filled_rect = pygame.Rect(20, 20, hp, 20)
     pygame.draw.rect(surf, (0, 255, 0), filled_rect)
     pygame.draw.rect(surf, (255, 255, 255), outlined_rect, 2)
+
+def draw_lives(lives, surf):
+    image = pygame.image.load(os.path.join(img_dir, 'playerShip.png'))
+    image = pygame.transform.scale(image, (30, 20))
+    rect = image.get_rect()
+    rect.top = 20
+    for i in range(lives):
+        rect.right = WIDTH - 20 - 35*i
+        surf.blit(image, rect)
+
 
 WIDTH = 400
 HEIGHT = 600
@@ -77,10 +88,26 @@ while game_on:
             game_on = False
     # обновление
     all_sprites.update()
+
+    # столкновение игрока с метеоритом
+    for hit in pygame.sprite.spritecollide(player, mobs, 1, pygame.sprite.collide_circle):
+        Mob()
+        player.hp -= hit.radius
+        if player.hp <= 0:
+            player.hp = 0
+    
+    if player.hp == 0:
+        if player.lives > 1:
+            player.lives -= 1
+            player.hp = 100
+        else:
+            game_on = False
+
     # отрисовка
     screen.fill((0, 0, 0))
     all_sprites.draw(screen)
     draw_hp(player.hp, screen)
+    draw_lives(player.lives, screen)
     pygame.display.flip()
 
 
