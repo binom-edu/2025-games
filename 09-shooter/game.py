@@ -10,6 +10,8 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.centerx = WIDTH / 2
         self.rect.bottom = HEIGHT - 30
+        self.hp = 100
+        self.lives = 3
     def update(self):
         key_pressed = pygame.key.get_pressed()
         if key_pressed[pygame.K_LEFT]:
@@ -38,6 +40,12 @@ class Mob(pygame.sprite.Sprite):
             self.rect.centery = random.randrange(-100, 0)
             self.speedx = random.randint(-3, 3)
             self.speedy = random.randint(1, 10)
+
+def draw_hp(hp, surf):
+    outlined_rect = pygame.Rect(20, 20, 100, 20)
+    filled_rect = pygame.Rect(20, 20, hp, 20)
+    pygame.draw.rect(surf, (0, 255, 0), filled_rect)
+    pygame.draw.rect(surf, (255, 255, 255), outlined_rect, 2)
 
 WIDTH = 400
 HEIGHT = 600
@@ -72,6 +80,7 @@ while game_on:
     # отрисовка
     screen.fill((0, 0, 0))
     all_sprites.draw(screen)
+    draw_hp(player.hp, screen)
     pygame.display.flip()
 
 
