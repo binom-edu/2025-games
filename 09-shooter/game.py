@@ -12,6 +12,8 @@ class Player(pygame.sprite.Sprite):
         self.rect.bottom = HEIGHT - 30
         self.hp = 100
         self.lives = 3
+        self.shoot_delay = 1000
+        self.last_shoot = pygame.time.get_ticks()
     def update(self):
         key_pressed = pygame.key.get_pressed()
         if key_pressed[pygame.K_LEFT]:
@@ -19,6 +21,14 @@ class Player(pygame.sprite.Sprite):
             if self.rect.left < 0: self.rect.left = 0
         if key_pressed[pygame.K_RIGHT]:
             self.rect.right = min(WIDTH, self.rect.right + 2)
+        if key_pressed[pygame.K_SPACE]:
+            self.shoot()
+    
+    def shoot(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_shoot > self.shoot_delay:
+            Bullet(self.rect.centerx, self.rect.top)
+            self.last_shoot = now
 
 class Mob(pygame.sprite.Sprite):
     def __init__(self):
@@ -41,6 +51,29 @@ class Mob(pygame.sprite.Sprite):
             self.rect.centery = random.randrange(-100, 0)
             self.speedx = random.randint(-3, 3)
             self.speedy = random.randint(1, 10)
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = bullet_img
+        self.rect = self.image.get_rect()
+        self.rect.bottom = y
+        self.rect.centerx = x
+        self.speedy = -10
+        all_sprites.add(self)
+        bullets.add(self)
+    def update(self):
+        self.rect.y += self.speedy
+        if self.rect.bottom < 0:
+            self.kill()
+
+class Explosion(pygame.sprite.Sprite):
+    def __init__(self, coord):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = explosion_anim[0]
+        self.rect = self.image.get_rect()
+        self.rect.center = coord
+        all_sprites.add(self)
 
 def draw_hp(hp, surf):
     outlined_rect = pygame.Rect(20, 20, 100, 20)
@@ -67,11 +100,19 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
 pygame.display.set_caption('Shooter 26')
 clock = pygame.time.Clock()
 img_dir = os.path.join(os.path.dirname(__file__), 'img')
+bullet_img = pygame.image.load(os.path.join(img_dir, 'laserBlue16.png'))
 meteors_img = []
 meteors_list = os.listdir(os.path.join(img_dir, 'meteors'))
 for filename in meteors_list:
     meteors_img.append(pygame.image.load(os.path.join(img_dir, 'meteors', filename)))
+explosion_anim = []
+for i in range(9):
+    filename = f'regularExplosion0{i}.png'
+    img = pygame.image.load(os.path.join(img_dir, 'explosions', filename))
+    explosion_anim.append(pygame.transform.scale(img, (75, 75)))
+
 all_sprites = pygame.sprite.Group()
+bullets = pygame.sprite.Group()
 mobs = pygame.sprite.Group()
 
 player = Player()
@@ -96,6 +137,11 @@ while game_on:
         if player.hp <= 0:
             player.hp = 0
     
+    # столкновение пули с метеоритом
+    for hit in pygame.sprite.groupcollide(mobs, bullets, True, True):
+        Explosion(hit.rect.center)
+        Mob()
+
     if player.hp == 0:
         if player.lives > 1:
             player.lives -= 1
