@@ -29,6 +29,7 @@ class Player(pygame.sprite.Sprite):
         if now - self.last_shoot > self.shoot_delay:
             Bullet(self.rect.centerx, self.rect.top)
             self.last_shoot = now
+            bullet_snd.play()
 
 class Mob(pygame.sprite.Sprite):
     def __init__(self):
@@ -74,6 +75,20 @@ class Explosion(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = coord
         all_sprites.add(self)
+        self.frame = 0
+        self.animation_rate = 50
+        self.last_update = pygame.time.get_ticks()
+        random.choice(expl_snd).play()
+
+    def update(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_update > self.animation_rate:
+            self.last_update = now
+            self.frame += 1
+            if self.frame == len(explosion_anim):
+                self.kill()
+            else:
+                self.image = explosion_anim[self.frame]
 
 def draw_hp(hp, surf):
     outlined_rect = pygame.Rect(20, 20, 100, 20)
@@ -96,6 +111,7 @@ HEIGHT = 600
 FPS = 60
 
 pygame.init()
+pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
 pygame.display.set_caption('Shooter 26')
 clock = pygame.time.Clock()
@@ -110,6 +126,18 @@ for i in range(9):
     filename = f'regularExplosion0{i}.png'
     img = pygame.image.load(os.path.join(img_dir, 'explosions', filename))
     explosion_anim.append(pygame.transform.scale(img, (75, 75)))
+
+snd_dir = os.path.join(os.path.dirname(__file__), 'snd')
+bullet_snd = pygame.mixer.Sound(os.path.join(snd_dir, 'sfx_laser2.ogg'))
+expl_snd = []
+for filename in 'expl3.wav', 'expl6.wav':
+    snd = pygame.mixer.Sound(os.path.join(snd_dir, filename))
+    snd.set_volume(0.3)
+    expl_snd.append(snd)
+player_expl_snd = pygame.mixer.Sound(os.path.join(snd_dir, 'rumble1.ogg'))
+pygame.mixer.music.load(os.path.join(snd_dir, 'bgmusic.mp3'))
+pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.play(-1)
 
 all_sprites = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
@@ -147,6 +175,8 @@ while game_on:
             player.lives -= 1
             player.hp = 100
         else:
+            player_expl_snd.play()
+            Explosion(player.rect.center)
             game_on = False
 
     # отрисовка
@@ -156,5 +186,5 @@ while game_on:
     draw_lives(player.lives, screen)
     pygame.display.flip()
 
-
+pygame.time.delay(2000)
 pygame.quit()
