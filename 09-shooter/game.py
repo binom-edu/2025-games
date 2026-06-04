@@ -105,6 +105,12 @@ def draw_lives(lives, surf):
         rect.right = WIDTH - 20 - 35*i
         surf.blit(image, rect)
 
+def draw_text(text, surf, x, y, size):
+    font = pygame.font.Font(font_name, size)
+    font_surface = font.render(text, True, (255, 255, 255))
+    font_rect = font_surface.get_rect()
+    font_rect.midtop = (x, y)
+    surf.blit(font_surface, font_rect)
 
 WIDTH = 400
 HEIGHT = 600
@@ -115,6 +121,7 @@ pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
 pygame.display.set_caption('Shooter 26')
 clock = pygame.time.Clock()
+font_name = pygame.font.match_font('arial')
 img_dir = os.path.join(os.path.dirname(__file__), 'img')
 bullet_img = pygame.image.load(os.path.join(img_dir, 'laserBlue16.png'))
 meteors_img = []
@@ -148,6 +155,8 @@ all_sprites.add(player)
 
 for i in range(5): Mob()
 
+points = 0
+
 game_on = True
 while game_on:
     clock.tick(FPS)
@@ -169,6 +178,7 @@ while game_on:
     for hit in pygame.sprite.groupcollide(mobs, bullets, True, True):
         Explosion(hit.rect.center)
         Mob()
+        points += 50 - hit.radius
 
     if player.hp == 0:
         if player.lives > 1:
@@ -184,6 +194,7 @@ while game_on:
     all_sprites.draw(screen)
     draw_hp(player.hp, screen)
     draw_lives(player.lives, screen)
+    draw_text(str(points), screen, WIDTH//2, 20, 20)
     pygame.display.flip()
 
 pygame.time.delay(2000)
